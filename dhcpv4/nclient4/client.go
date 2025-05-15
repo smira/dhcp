@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
+//go:build go1.12
 // +build go1.12
 
 // Package nclient4 is a small, minimum-functionality client for DHCPv4.
@@ -260,6 +261,7 @@ func (c *Client) receiveLoop() {
 		// packets, IIRC. Choose a reasonable size and set it.
 		b := make([]byte, MaxMessageSize)
 		n, _, err := c.conn.ReadFrom(b)
+		log.Printf("read %d bytes from UDP connection, err %s", n, err)
 		if err != nil {
 			if !c.isClosed() {
 				c.logger.Printf("error reading from UDP connection: %v", err)
@@ -268,6 +270,7 @@ func (c *Client) receiveLoop() {
 		}
 
 		msg, err := dhcpv4.FromBytes(b[:n])
+		log.Printf("decoded msg %s, err %s", msg, err)
 		if err != nil {
 			// Not a valid DHCP packet; keep listening.
 			continue
@@ -285,6 +288,8 @@ func (c *Client) receiveLoop() {
 			// Not for us.
 			continue
 		}
+
+		log.Printf("sending msg %s", msg)
 
 		c.pendingMu.Lock()
 		p, ok := c.pending[msg.TransactionID]
