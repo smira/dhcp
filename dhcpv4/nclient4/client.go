@@ -359,10 +359,10 @@ func WithUnicast(srcAddr *net.UDPAddr) ClientOpt {
 		if srcAddr == nil {
 			srcAddr = &net.UDPAddr{Port: ClientPort}
 		}
-		c.conn, err = net.ListenUDP("udp4", srcAddr)
-		if err != nil {
-			err = fmt.Errorf("unable to start listening UDP port: %w", err)
-		}
+		// c.conn, err = net.ListenUDP("udp4", srcAddr)
+		// if err != nil {
+		// 	err = fmt.Errorf("unable to start listening UDP port: %w", err)
+		// }
 		return
 	}
 }
