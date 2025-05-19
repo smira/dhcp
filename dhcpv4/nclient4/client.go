@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/insomniacslk/dhcp/dhcpv4"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -359,11 +360,19 @@ func WithUnicast(srcAddr *net.UDPAddr) ClientOpt {
 		if srcAddr == nil {
 			srcAddr = &net.UDPAddr{Port: ClientPort}
 		}
-		c.conn, err = net.ListenUDP("udp4", srcAddr)
+		udpConn, err := net.ListenUDP("udp4", srcAddr)
 		if err != nil {
 			err = fmt.Errorf("unable to start listening UDP port: %w", err)
 		}
-		return
+
+		sc, _ := udpConn.SyscallConn()
+		sc.Control(func(fd uintptr) {
+			unix.SetsockoptByte(int(fd), unix.SOL_SOCKET, unix.SO_NO_CHECK, 1)
+		})
+
+		c.conn = udpConn
+
+		return err
 	}
 }
 
